@@ -16,9 +16,6 @@ public class MessageData
     /// </summary>
     public byte[] msgData { get; private set; }
 
-    private static ReadDelegate readCall = Json.DeserializByte;//反序列化耦合接口设置点
-    private static WriteDelegate writeCall = Json.SerializerByte;//序列化耦合接口设置点
-
     private delegate object ReadDelegate(Type t, byte[] data, int index, int readCount, bool needShowLog);
     private delegate byte[] WriteDelegate(object o);
 
@@ -40,8 +37,10 @@ public class MessageData
     {
         if (cmdNum != 2204)
         {
-            SQDebug.Log("发送消息的Id：" + cmdNum + "   消息内容:" + Json.Serializer<T>((T)o));
+            SQDebug.Log("发送消息的Id：" + cmdNum + "   消息内容:" + JsonConvert.SerializeObject(o));
         }
+
+
         byte[] data = SerializeData<T>((T)o);
         int msgAllLen = (int)(data.Length + 6);
         msgData = new byte[msgAllLen];
@@ -64,8 +63,8 @@ public class MessageData
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                ProtoBuf.Serializer.Serialize<T>(ms, t);
-                byte[] b = new byte[ms.Length];
+                //ProtoBuf.Serializer.Serialize<T>(ms, t);
+                byte[] b = UTF8Encoding.Default.GetBytes(JsonConvert.SerializeObject(t));
                 ms.Position = 0;
                 ms.Read(b, 0, b.Length);
                 return b;
@@ -83,15 +82,20 @@ public class MessageData
     {
         try
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ms.Write(data, 0, data.Length);
-                //将流的位置归0
-                ms.Position = 0;
-                //使用工具反序列化对象
-                T result = ProtoBuf.Serializer.Deserialize<T>(ms);
-                return result;
-            }
+            //using (MemoryStream ms = new MemoryStream())
+            //{
+            //    ms.Write(data, 0, data.Length);
+            //    //将流的位置归0
+            //    ms.Position = 0;
+
+            //    //使用工具反序列化对象
+            //    //T result = ProtoBuf.Serializer.Deserialize<T>(ms);
+
+            //    return result;
+            //}
+
+            T result = JsonConvert.DeserializeObject<T>(data.ToString());
+            return result;
         }
         catch (Exception e)
         {
@@ -100,6 +104,17 @@ public class MessageData
         }
     }
     #endregion
+
+
+
+
+
+
+
+
+
+
+
 
     public static byte[] Object2Bytes(object obj)
     {
@@ -135,9 +150,8 @@ public class MessageData
     /// <returns></returns>
     public T Read<T>(bool showLog = false)
     {
-        //object o = readCall(typeof(T), msgData, 0, msgData.Length, showLog);//本来就是需要注释掉的
         T o = DeserializeData<T>(msgData);
-        SQDebug.Log("接收到的消息：" + Json.Serializer<T>(o));
+        SQDebug.Log("接收到的消息：" + JsonConvert.SerializeObject(o));
         return o;
     }
 

@@ -17,11 +17,6 @@ public class SQSceneLoader : MonoBehaviour {
         It = this;
     }
 
-    void Start()
-    {
-
-    }
-
     /// <summary>
     /// 加载场景 
     /// </summary>

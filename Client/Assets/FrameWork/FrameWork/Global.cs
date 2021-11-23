@@ -7,7 +7,11 @@ using System;
 
 public class Global : MonoBehaviour
 {
-    public Transform mUIRoot;//uiroot
+    /// <summary>
+    /// UI节点
+    /// </summary>
+    public Transform m_UIRoot;
+
     public static Global Inst;
     //当前网络ID
     private int mCurSessionId = 0;
@@ -21,12 +25,6 @@ public class Global : MonoBehaviour
     {
         Inst = this;
         GameObject.DontDestroyOnLoad(this);
-    }
-
-
-    void Start()
-    {
-
     }
 
     public void RegisterController<T>() where T : new()
@@ -47,14 +45,14 @@ public class Global : MonoBehaviour
 
     }
 
+
     /// <summary>
     /// 连接游戏服务器的
     /// </summary>
     /// <param name="call">Call.</param>
 	public void ConnectServer(Action<bool> call)
     {
-
-        NetProcess.Connect(GameManager.Instance.Ip, GameManager.Instance.port, (isok, sessionId) =>
+        NetProcess.Connect(GameManager.Instance.m_Ip, GameManager.Instance.m_Port, (isok, sessionId) =>
         {
 
             if (isok)
@@ -70,21 +68,6 @@ public class Global : MonoBehaviour
         });
 
 
-    }
-
-    /// <summary>
-    /// 限制 最小
-    /// </summary>
-    /// <param name="t">要限制的数</param>
-    /// <param name="min"> 最小的值</param>
-    /// <returns></returns>
-    public int LimitMin(int t, int min)
-    {
-        if (t >= min)
-        {
-            return t;
-        }
-        else return min;
     }
 }
 

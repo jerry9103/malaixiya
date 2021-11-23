@@ -61,7 +61,7 @@ public class SQDebug : MonoBehaviour
     /// <param name="str"></param>
     public static void LogWarning(string str, Object content = null)
     {
-        if (GameManager.Instance.mIsShowLog)
+        if (GameManager.Instance.m_IsShowLog)
         {
             Debug.LogWarning(str, content);
         }
@@ -73,7 +73,7 @@ public class SQDebug : MonoBehaviour
     /// <param name="str"></param>
     public static void LogError(string str, Object content = null)
     {
-        if (GameManager.Instance.mIsShowLog)
+        if (GameManager.Instance.m_IsShowLog)
         {
             Debug.LogError(str, content);
         }
@@ -86,7 +86,7 @@ public class SQDebug : MonoBehaviour
     /// <param name="o"></param>
     public static void LogException(System.Exception e, Object o = null)
     {
-        if (GameManager.Instance.mIsShowLog)
+        if (GameManager.Instance.m_IsShowLog)
         {
             Debug.LogException(e, o);
         }

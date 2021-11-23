@@ -198,6 +198,8 @@ public class NetProcess : MonoBehaviour
 
     #endregion
 
+
+
     public static void SendRequest<T>(object o, int msgType, MessegeCallBack msgCallBack = null, bool showlock = true)
     {
         if (showlock)
@@ -259,7 +261,7 @@ public class NetProcess : MonoBehaviour
         }
         else
         {
-            Connect(GameManager.Instance.Ip, GameManager.Instance.port, (result, sessionId) =>
+            Connect(GameManager.Instance.m_Ip, GameManager.Instance.m_Port, (result, sessionId) =>
             {
                 if (result)
                 {
@@ -282,15 +284,15 @@ public class NetProcess : MonoBehaviour
         }
     }
 
-    private int score = 0;
     void Update()
     {
         if (mConnectionManager != null)
         {
             mConnectionManager.Update();
-            // NGUISQDebug.Log(this.score);
         }
     }
+
+
     /// <summary>
     /// 判断是否还有链接存在
     /// </summary>
@@ -303,7 +305,8 @@ public class NetProcess : MonoBehaviour
             return mConnectionManager.CurrentConnection.Connected;
         return false;
     }
-    //Socket connected event.
+
+
     void OnExecConnect(Connection connection, SOCKET_ERRCODE errCode)
     {
         if (errCode != SOCKET_ERRCODE.SUCCESS)
@@ -391,8 +394,6 @@ public class NetProcess : MonoBehaviour
         }
 
     }
-
-
 
 }
 

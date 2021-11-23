@@ -37,7 +37,6 @@ public class SQToolHelper
     #endregion
 
 
-
     #region 域名ToIP地址
 
     public static string DoGetHostAddresses(string hostname)
@@ -51,10 +50,7 @@ public class SQToolHelper
         {
             SQDebug.Log(e.ToString() );
 
-        }
-       
-
-        //Console.WriteLine("GetHostAddresses({0}) returns:", hostname);  
+        }   
         if (ips!=null)
         {
             SQDebug.Log("ip==" + ips[0].ToString());
@@ -62,11 +58,10 @@ public class SQToolHelper
             return ips[0].ToString();
         }
         return null;
+
     }
 
     #endregion
-
-
 
     #region Object2byte
 

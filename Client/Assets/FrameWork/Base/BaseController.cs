@@ -46,7 +46,7 @@ public class BaseController : IDisposable
             SQDebug.Log("加载错误：" + mViewPath);
             return null;
         }
-        obj.transform.parent = Global.Inst.mUIRoot;
+        obj.transform.parent = Global.Inst.m_UIRoot;
         obj.transform.localPosition = Vector3.zero;
         obj.transform.localRotation = Quaternion.Euler(Vector3.zero);
         obj.transform.localScale = Vector3.one;

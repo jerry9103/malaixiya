@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class ConfigManager : MonoBehaviour
 {
@@ -56,7 +57,7 @@ public class ConfigManager : MonoBehaviour
         if (!mConfigCach.ContainsKey(name))
             return null;
         string s = mConfigCach[name].ToString();
-        List<T> con = Json.Deserialize<List<T>>(s);
+        List<T> con = JsonConvert.DeserializeObject<List<T>>(s);
         List<ConfigDada> condata = new List<ConfigDada>();
         for (int i = 0; i < con.Count; i++)
             condata.Add(con[i]);

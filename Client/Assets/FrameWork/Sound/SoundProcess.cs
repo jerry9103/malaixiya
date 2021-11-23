@@ -9,11 +9,11 @@ public class SoundProcess : MonoBehaviour
     /// <summary>
     /// 背景音乐音量大小
     /// </summary>
-    public static float m_fDefaultMusicVolume = 1.0f;
+    public static float m_fDefaultMusicVolume = 0.8f;
     /// <summary>
     /// 音效音量大小
     /// </summary>
-    public static float m_fDefaultSoundVolume = 0.8f;
+    public static float m_fDefaultSoundVolume = 1.0f;
     /// <summary>
     /// 是否震动
     /// </summary>
@@ -65,7 +65,6 @@ public class SoundProcess : MonoBehaviour
         LoadConfig();
         GameObject.DontDestroyOnLoad(go);
     }
-
 
     public static void LoadConfig()
     {

@@ -12,14 +12,41 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 是否开启打印
     /// </summary>
-    public bool mIsShowLog = false;
-    public string ServerUrl = "";
-    public bool mUseUrl = false;
-    public string Ip = "47.96.251.52";
-    public int port = 12345;
-    public static GameManager Instance;
+    public bool m_IsShowLog = false;
+    /// <summary>
+    /// 服务器地址
+    /// </summary>
+    public string m_ServerUrl = "";
+    /// <summary>
+    /// 是否用链接地址
+    /// </summary>
+    public bool m_UseUrl = false;
+    /// <summary>
+    /// 服务器IP
+    /// </summary>
+    public string m_Ip = "47.96.251.52";
+    /// <summary>
+    /// 服务器端口
+    /// </summary>
+    public int m_Port = 12345;
+
+
+
+
+    public bool mIsFirstLogin { get; private set; }   //是否登陆
+
+
+
+
+
+
+
+
+
+
+
     public int iosIsOpenID = 0;
-    public bool mIsFirstLogin;   //是否登陆
+
     public bool IsTestVersion = false;
 
     private int mAutoReConnectNum = 0;//自动重连次数
@@ -40,6 +67,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private CallBack mBreathCallBack;
 
+
+    public static GameManager Instance { get; private set; }
+
+
     #endregion
     void Awake()
     {
@@ -55,18 +86,20 @@ public class GameManager : MonoBehaviour
     {
         //不可销毁对象
         GameObject.DontDestroyOnLoad(this);
-        //gameObject.AddComponent<SetTimeout>();
+
         //初始化模块
         InitModule();
-        //游戏网络
+
+        //初始化游戏网络
         InitNetWork();
 
-        //
+        //初始化延时模块
         InitDelay();
 
         CallBack call = () =>
         {
-            NetProcess.InitNetWork(GameManager.Instance.Ip, GameManager.Instance.port);
+            //初始化网络
+            NetProcess.InitNetWork(GameManager.Instance.m_Ip, GameManager.Instance.m_Port);
 
             //初始化创建管理器
             InitSceneMgr();
@@ -77,11 +110,6 @@ public class GameManager : MonoBehaviour
 
             //初始化SDK
             InitSixSdkManager();
-#if YYVOICE
-            //开启YY语音
-            if (Application.platform != RuntimePlatform.WindowsEditor)
-                YYsdkManager.Create();
-#endif
 #if GPS
             //初始化GPS
             InitGPS();
@@ -90,8 +118,9 @@ public class GameManager : MonoBehaviour
             LoadConfig();
         };
 
+
         //
-        if (mUseUrl)
+        if (m_UseUrl)
         {
             GetIp(call);
         }
@@ -99,19 +128,17 @@ public class GameManager : MonoBehaviour
             call();
     }
 
-    //一开始游戏时候，加载界面完成的回调函数
-    public void OnLoadFinished()
-    {
-        //Global.It.mLoginCtrl.OpenWindow();
-        //Global.It.mLoadingCtrl.mloadUI.HideWindow();
-    }
 
+    /// <summary>
+    /// 解析IP地址
+    /// </summary>
+    /// <param name="call"></param>
     private void GetIp(CallBack call)
     {
-        if (mUseUrl)
+        if (m_UseUrl)
         {
-            Ip = SQToolHelper.DoGetHostAddresses(ServerUrl);
-            if (string.IsNullOrEmpty(Ip))
+            m_Ip = SQToolHelper.DoGetHostAddresses(m_ServerUrl);
+            if (string.IsNullOrEmpty(m_Ip))
             {
                 //Global.Inst.GetController<CommonTipsController>().ShowTips("网络连接错误，请检查网络后重新连接", "确定", () =>
                 //{
@@ -124,50 +151,11 @@ public class GameManager : MonoBehaviour
     }
 
 
-
-    /// <summary>
-    /// 初始化网络
-    /// </summary>
-    private void InitNetWork()
-    {
-        GameObject NetObject = new GameObject();
-        NetObject.name = "NetProcess";
-        NetObject.AddComponent<NetProcess>();
-        NetObject.AddComponent<HttpProcess>();
-        GameObject.DontDestroyOnLoad(NetObject);
-    }
-    /// <summary>
-    /// 初始化Gps
-    /// </summary>
-    private void InitGPS()
-    {
-        GameObject GPSObject = new GameObject();
-        GPSObject.name = "SQGPSLoader";
-        
-        mGpsTools= GPSObject.AddComponent<SQGPSLoader>();
-        GameObject.DontDestroyOnLoad(GPSObject);
-    }
-
-    private void InitSceneMgr()
-    {
-        GameObject NetObject = new GameObject();
-        NetObject.name = "SQSceneLoader";
-        NetObject.AddComponent<SQSceneLoader>();
-        GameObject.DontDestroyOnLoad(NetObject);
-    }
-
-    private void InitDelay()
-    {
-        GameObject obj = new GameObject();
-        obj.name = "SQTimeOutTool";
-        obj.AddComponent<SQTimeOutTool>();
-        GameObject.DontDestroyOnLoad(obj);
-    }
-
-
-    #region 初始化模块
     private void InitModule()
     {
+
+
+
         //Global.Inst.RegisterController<LoadingController>();//加载
         //Global.Inst.RegisterController<LoginController>();//登录
         //Global.Inst.RegisterController<CommonTipsController>();//公共提示框
@@ -182,16 +170,45 @@ public class GameManager : MonoBehaviour
 
         //Global.Inst.RegisterController<MJGameController>();    //麻将
     }
-    #endregion
+
     /// <summary>
-    /// 后台设置的值大于版本的值，true :微信登陆，false : 游客登陆
+    /// 初始化网络模块
     /// </summary>
-    /// <returns></returns>
-    public bool IsGuestOpen()
+    private void InitNetWork()
     {
-        return this.iosIsOpenID > this.CurIsOpenId;
+        GameObject NetObject = new GameObject();
+        NetObject.name = "NetProcess";
+        NetObject.AddComponent<NetProcess>();
+        NetObject.AddComponent<HttpProcess>();
+        GameObject.DontDestroyOnLoad(NetObject);
     }
 
+    /// <summary>
+    /// 初始化延时模块
+    /// </summary>
+    private void InitDelay()
+    {
+        GameObject obj = new GameObject();
+        obj.name = "SQTimeOutTool";
+        obj.AddComponent<SQTimeOutTool>();
+        GameObject.DontDestroyOnLoad(obj);
+    }
+
+    /// <summary>
+    /// 初始化Gps
+    /// </summary>
+    private void InitGPS()
+    {
+        GameObject GPSObject = new GameObject();
+        GPSObject.name = "SQGPSLoader";
+
+        mGpsTools = GPSObject.AddComponent<SQGPSLoader>();
+        GameObject.DontDestroyOnLoad(GPSObject);
+    }
+
+    /// <summary>
+    /// 初始化配置表
+    /// </summary>
     private void LoadConfig()
     {
         ConfigManager.Creat();
@@ -201,22 +218,62 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+    //一开始游戏时候，加载界面完成的回调函数
+    public void OnLoadFinished()
+    {
+        //Global.It.mLoginCtrl.OpenWindow();
+        //Global.It.mLoadingCtrl.mloadUI.HideWindow();
+    }
+
+
+    /// <summary>
+    /// 初始化场景模块
+    /// </summary>
+    private void InitSceneMgr()
+    {
+        GameObject NetObject = new GameObject();
+        NetObject.name = "SQSceneLoader";
+        NetObject.AddComponent<SQSceneLoader>();
+        GameObject.DontDestroyOnLoad(NetObject);
+    }
+
+
     /// <summary>
     /// 初始化SDK
     /// </summary>
     private void InitSixSdkManager()
     {
-        GameObject NetObject = new GameObject();
-        NetObject.name = "SixqinSDKManager";
+        //GameObject NetObject = new GameObject();
+        //NetObject.name = "SixqinSDKManager";
         //NetObject.AddComponent<SixqinSDKManager>();
-        GameObject.DontDestroyOnLoad(NetObject);
+        //GameObject.DontDestroyOnLoad(NetObject);
     }
+
+
+
+
+
+
+
+    /// <summary>
+    /// 后台设置的值大于版本的值，true :微信登陆，false : 游客登陆
+    /// </summary>
+    /// <returns></returns>
+    public bool IsGuestOpen()
+    {
+        return this.iosIsOpenID > this.CurIsOpenId;
+    }
+
+
+
+
 
     void OnApplicationPause(bool b)
     {
         if (!b)//唤醒
         {
-            SQDebug.Log("程序获得焦点"+ NetProcess.IsCurExistConnected());
+            SQDebug.Log("程序获得焦点" + NetProcess.IsCurExistConnected());
             if (NetProcess.IsCurExistConnected())
             {
                 CancelHeartBreath();
@@ -231,9 +288,9 @@ public class GameManager : MonoBehaviour
                 //    ShowNetTips();
                 //}
             }
-           
+
         }
-       
+
     }
 
 #if UNITY_EDITOR
@@ -244,7 +301,7 @@ public class GameManager : MonoBehaviour
             NetProcess.ReleaseAllConnect();
             Debug.Log("断开所有链接————————————————");
         }
-            
+
         if (Input.GetKeyUp(KeyCode.A))
             OnApplicationPause(false);
     }
@@ -323,7 +380,7 @@ public class GameManager : MonoBehaviour
         }
 
 
-       
+
     }
 
     /// <summary>
