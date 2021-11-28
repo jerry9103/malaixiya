@@ -11,7 +11,6 @@ public class SQDebug : MonoBehaviour
     public static void PrintToScreen(string s)
     {
 #if SQDEBUG
-        NGUIDebug.Log(s);
         Print(s);
 #endif
     }
@@ -23,7 +22,7 @@ public class SQDebug : MonoBehaviour
     public static void PrintToScreen(params object[] objs)
     {
 #if SQDEBUG
-        NGUIDebug.Log(objs);
+        
 #endif
     }
 
@@ -47,7 +46,7 @@ public class SQDebug : MonoBehaviour
     public static void Log(object message)
     {
 #if SQDEBUG
-        if(GameManager.Instance.mIsShowLog)
+        if(GameManager.Instance.m_IsShowLog)
         {
             Debug.Log(message);
         }

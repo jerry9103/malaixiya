@@ -17,7 +17,45 @@ public class BaseController : IDisposable
     public BaseController(string name, string path)
     {
         mViewName = name;
-        mViewPath = path;
+        mViewPath = "Prefabs/" + path;
+    }
+
+
+    public virtual T OpenWindow<T>() where T: BaseView {
+        if (mBaseView != null)
+        {
+            mBaseView.gameObject.SetActive(true);
+            return mBaseView as T;
+        }
+        if (string.IsNullOrEmpty(mViewPath))
+        {
+            SQDebug.Log("view path is null");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(mViewName))
+        {
+            SQDebug.Log("view name is null");
+            return null;
+        }
+
+        GameObject obj = GameObject.Instantiate((Resources.Load(mViewPath))) as GameObject;
+
+        if (obj == null)
+        {
+            SQDebug.Log("加载错误：" + mViewPath);
+            return null;
+        }
+        obj.transform.parent = Global.Inst.m_UIRoot;
+        obj.transform.localPosition = Vector3.zero;
+        obj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+        obj.transform.localScale = Vector3.one;
+        obj.gameObject.SetActive(true);
+        mBaseView = obj.GetComponent<T>();
+        if (mBaseView == null) mBaseView = obj.AddComponent<T>();
+        mBaseView.AddView(mViewName);
+
+        return mBaseView as T;
     }
 
     public virtual BaseView OpenWindow()

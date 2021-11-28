@@ -1,121 +1,59 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
-
-public class HttpProcess : MonoBehaviour {
-
-    public bool   isShowLog = false;
-
-
-    public delegate void HttpCallBack(string result);
-
-    public static HttpProcess Instance = null;
-    public  string url = null;
-
-	void Start () {
-        Instance = this;  
-	}
-
-    void OnDestroy()
+public class HttpProcess
+{
+    static IEnumerator sendRequest(UnityWebRequest request, Action<int, string> back)
     {
-        Instance = null;  
-    }
-
-    public static void SendGet(string url,HttpCallBack callBack = null)
-    {
-        if (Instance == null || Instance.gameObject.activeSelf == false)
+        if (!NetAvailable)
         {
-            SQDebug.Log("Instance is null or active self == false,please send wait");
-            return;
-        }
-        Instance.StartCoroutine(Instance.GetData(url, callBack));
-    }
-
-
-    public static void SendPost(string url, WWWForm form, HttpCallBack callBack = null)
-    {
-        if(Instance == null || Instance.gameObject.activeSelf == false)
-        {
-            SQDebug.Log("Instance is null or active self == false,please send wait" + url);
-            return;
-        }
-        //
-		Dictionary<string, string> header = new Dictionary<string, string>();
-		//
-
-        Instance.StartCoroutine(Instance.PostData(url, form, header, callBack));
-    }
-
-    IEnumerator PostData(string url, WWWForm form, Dictionary<string,string> header, HttpCallBack callBack = null)
-    {
-        
-        if (isShowLog)
-        {
-            SQDebug.LogWarning(url);
-        }
-        WWW w = new WWW(url, form.data, header);
-        yield return w;
-        if (!string.IsNullOrEmpty(w.error))
-        {
-            if (callBack == null)
-            {
-                SQDebug.Log("WWW  : "  + " erro info " + w.error);
-                yield break;
-            }
-            ResultCallBack(callBack, w.error);
+            back?.Invoke(-1, "网络错误");
             yield break;
         }
 
-        if (callBack != null)
+        yield return request.SendWebRequest();
+        if (request.isNetworkError || request.isHttpError)
         {
-            ResultCallBack(callBack, w.text);
-        }
-    }
-
-    IEnumerator GetData(string url, HttpCallBack callBack = null)
-    {
-        if (isShowLog)
-        {
-            SQDebug.LogWarning(url);
-        }
-        
-        WWW w = new WWW(url);
-
-       // w.he.Add("cookies", "openid=736455D011F599A8177806850F1839F5&&appid=1106110196&&openkey=3F6E4816A09D42953A5FF399A9C0A577");
-
-        yield return w;
-        if (!string.IsNullOrEmpty(w.error))
-        {
-            if(callBack == null)
+            if (request.downloadHandler != null && !string.IsNullOrEmpty(request.downloadHandler.text))
             {
-                SQDebug.Log("WWW error info " + w.error);
-                yield break;
+                back?.Invoke(0, request.downloadHandler.text);
             }
-            ResultCallBack(callBack,w.error);
-            yield break;
+            else
+                back?.Invoke(1, request.error);
         }
-
-        if (callBack != null)
+        else
         {
-            ResultCallBack(callBack, w.text);
+            string data = request.downloadHandler.text;
+            back?.Invoke(0, data);
+            SQDebug.Log("Post返回数据:" + data);
         }
-        
+        yield return null;
     }
 
-    void ResultCallBack(HttpCallBack callBack,string result)
+    /// <summary>  
+    /// 网络可用否
+    /// </summary>  
+    public static bool NetAvailable
     {
-        if (callBack.Method.IsStatic)
+        get
         {
-            callBack(result);
-            return;
+            return Application.internetReachability != NetworkReachability.NotReachable;
         }
-        if (callBack.Target.ToString() == "null")
-        {
-            SQDebug.LogWarning("Object was destroyed， but it always wanna to be handle");
-            return;
-        }
-        callBack(result);
+    }
+
+
+
+    public static void SendPost(string url, Action<int, string> back)
+    {
+        Debug.Log("URL=" + url);
+
+        UnityWebRequest request = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+        request.timeout = 10;
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        GameManager.Instance.StartCoroutine(sendRequest(request, back));
     }
 }

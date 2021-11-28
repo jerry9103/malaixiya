@@ -6,9 +6,14 @@ using System.Collections.Generic;
 using ProtoBuf;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 
 public class GameManager : MonoBehaviour
 {
+    /// <summary>
+    /// 版本号
+    /// </summary>
+    public string m_Version;
     /// <summary>
     /// 是否开启打印
     /// </summary>
@@ -116,6 +121,8 @@ public class GameManager : MonoBehaviour
 #endif
             //加载配置信息
             LoadConfig();
+
+            Global.GetController<LoadingController>().Show(OnLoadFinished);
         };
 
 
@@ -154,11 +161,11 @@ public class GameManager : MonoBehaviour
     private void InitModule()
     {
 
+        Global.RegisterController<LoadingController>();
+        Global.RegisterController<LoginController>();   //登录
+        Global.RegisterController<TipsController>();    //提示
+        Global.RegisterController<LobbyController>();   //大厅
 
-
-        //Global.Inst.RegisterController<LoadingController>();//加载
-        //Global.Inst.RegisterController<LoginController>();//登录
-        //Global.Inst.RegisterController<CommonTipsController>();//公共提示框
         //Global.Inst.RegisterController<NetLoadingController>();//网络loading
         //Global.Inst.RegisterController<MainController>();//主界面
         //Global.Inst.RegisterController<ClubController>();  //俱乐部
@@ -179,7 +186,6 @@ public class GameManager : MonoBehaviour
         GameObject NetObject = new GameObject();
         NetObject.name = "NetProcess";
         NetObject.AddComponent<NetProcess>();
-        NetObject.AddComponent<HttpProcess>();
         GameObject.DontDestroyOnLoad(NetObject);
     }
 
@@ -222,8 +228,8 @@ public class GameManager : MonoBehaviour
     //一开始游戏时候，加载界面完成的回调函数
     public void OnLoadFinished()
     {
-        //Global.It.mLoginCtrl.OpenWindow();
-        //Global.It.mLoadingCtrl.mloadUI.HideWindow();
+        Global.GetController<LoginController>().Show();
+        Global.GetController<LoadingController>().CloseWindow();
     }
 
 
@@ -251,21 +257,143 @@ public class GameManager : MonoBehaviour
     }
 
 
-
-
-
-
-
     /// <summary>
-    /// 后台设置的值大于版本的值，true :微信登陆，false : 游客登陆
+    /// 检测版本更新
     /// </summary>
-    /// <returns></returns>
-    public bool IsGuestOpen()
+    private void CheckVersion()
     {
-        return this.iosIsOpenID > this.CurIsOpenId;
+        if (Application.platform == RuntimePlatform.WindowsEditor)
+        {
+            //AutoLogin();
+            return;
+        }
+
+        Assets.LoadTxtFile(GameManager.Instance.mVersionTxtUrl, (t) =>
+        {
+            if (string.IsNullOrEmpty(t))
+            {
+                //Global.Inst.GetController<CommonTipsController>().ShowTips("当前网络信号差，请重新登录", "确定", true, () =>
+                //{
+                //    CheckVersion();
+                //});
+            }
+            else
+            {
+                VersionConfig txt = JsonConvert.DeserializeObject<VersionConfig>(t);
+                if (txt == null)
+                {
+                    //Global.Inst.GetController<CommonTipsController>().ShowTips("当前网络信号差，请重新登录", "确定", true, () =>
+                    //{
+                    //    CheckVersion();
+                    //});
+                }
+                else
+                {
+                    string[] local = GameManager.Instance.mVersion.Split('.');
+                    string[] net = new string[3];
+                    string ver = "";
+                    string appUrl = "";
+                    string resUrl = "";
+                    int resId = 0;
+                    if (Application.platform == RuntimePlatform.Android)
+                    {
+                        net = txt.android_version.Split('.');
+                        ver = txt.android_version;
+                        appUrl = txt.android_appUrl;
+                        resUrl = txt.android_resUrl;
+                        resId = txt.android_resVersion;
+                    }
+                    else if (Application.platform == RuntimePlatform.IPhonePlayer)
+                    {
+                        net = txt.ios_version.Split('.');
+                        ver = txt.ios_version;
+                        appUrl = txt.ios_appUrl;
+                        resUrl = txt.ios_resUrl;
+                        resId = txt.ios_resVersion;
+                    }
+                    if (GameManager.Instance.mVersion != ver)
+                    {
+                        UpdateVersion(net, local, appUrl, resUrl, resId);
+                    }
+                    else
+                    {
+                        //ConfigManager.LoadAllConfig(resUrl, resId, AutoLogin);
+                    }
+                }
+            }
+        });
     }
 
+    /// <summary>
+    /// 判断a是否大于b
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>1是相等，2是大于，-1是小于</returns>
+    private void UpdateVersion(string[] a, string[] b, string appUrl, string resUrl, int resId)
+    {
+        Debug.Log(a);
+        Debug.Log(b);
+        int a1 = int.Parse(a[0]);
+        int a2 = int.Parse(a[1]);
+        int a3 = int.Parse(a[2]);
 
+        int b1 = int.Parse(b[0]);
+        int b2 = int.Parse(b[1]);
+        int b3 = int.Parse(b[2]);
+        bool isupdate = false;
+        //1.0.28  1.1.0
+        if (a1 > b1)
+        {
+            isupdate = true;
+        }
+        else
+        {
+            if (a2 > b2 && a1 == b1)
+            {
+                isupdate = true;
+            }
+            else
+            {
+                if (a2 == b2 && a1 == b1)
+                {
+                    if (a3 > b3)
+                    {
+                        isupdate = true;
+                    }
+                }
+
+            }
+        }
+        if (isupdate)
+        {
+
+            //Global.Inst.GetController<CommonTipsController>().ShowTips("发现新版本，请前往下载", "下载", true, () =>
+            //{
+            //    if (Application.platform == RuntimePlatform.Android)
+            //    {
+            //        Application.OpenURL(appUrl);
+            //    }
+            //    else if (Application.platform == RuntimePlatform.IPhonePlayer)
+            //    {
+            //        Application.OpenURL(appUrl);
+            //    }
+
+            //    ConfigManager.LoadAllConfig(resUrl, resId);
+            //}, () =>
+            //{
+
+
+            //    ConfigManager.LoadAllConfig(resUrl, resId);
+
+            //});
+        }
+        else
+        {
+            //ConfigManager.LoadAllConfig(resUrl, resId, AutoLogin);
+        }
+
+    }
 
 
 
@@ -273,13 +401,13 @@ public class GameManager : MonoBehaviour
     {
         if (!b)//唤醒
         {
-            SQDebug.Log("程序获得焦点" + NetProcess.IsCurExistConnected());
-            if (NetProcess.IsCurExistConnected())
-            {
-                CancelHeartBreath();
-                StartHeartBreath();
-            }
-            else
+            //SQDebug.Log("程序获得焦点" + NetProcess.IsCurExistConnected());
+            //if (NetProcess.IsCurExistConnected())
+            //{
+            //    CancelHeartBreath();
+            //    StartHeartBreath();
+            //}
+            //else
             {
                 //if (!BaseView.ContainsView<LoginView>())
                 //{

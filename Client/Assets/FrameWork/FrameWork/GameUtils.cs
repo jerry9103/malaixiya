@@ -277,7 +277,7 @@ public static class GameUtils
         textEditor.OnFocus();
         textEditor.Copy();
 #else
-        SixqinSDKManager.Inst.SendMsg(SixqinSDKManager.COPY_TEXT, str);
+        //SixqinSDKManager.Inst.SendMsg(SixqinSDKManager.COPY_TEXT, str);
 #endif
         if (!string.IsNullOrEmpty(str))
         {

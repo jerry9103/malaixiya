@@ -271,6 +271,8 @@ public class BaseView : MonoBehaviour, IGameEvent
     {
         try
         {
+            if (showViewDic.ContainsKey(name))
+                showViewDic.Remove(name);
             StopAllCoroutines();
             Dispose();
         }
@@ -278,6 +280,11 @@ public class BaseView : MonoBehaviour, IGameEvent
         {
             SQDebug.Log(this.name + "  " + error);
         }
+    }
+
+    public virtual void Hide() {
+        gameObject.SetActive(false);
+        StopAllCoroutines();
     }
 
     public virtual void Dispose()
@@ -297,14 +304,14 @@ public class BaseView : MonoBehaviour, IGameEvent
     /// <returns></returns>
     public static T GetWidget<T>(string path, Transform parent) where T : BaseViewWidget
     {
-
+        path = "Prefabs/" + path;
         GameObject prefab = Assets.LoadPrefab(path);
         if (prefab != null)
         {
             GameObject obj = Instantiate(prefab);
             if (parent != null)
             {
-                obj.transform.parent = parent;
+                obj.transform.SetParent(parent);
                 obj.transform.localPosition = Vector3.zero;
                 obj.transform.localScale = Vector3.one;
                 obj.transform.localRotation = Quaternion.Euler(Vector3.zero);

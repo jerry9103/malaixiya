@@ -27,19 +27,19 @@ public class Global : MonoBehaviour
         GameObject.DontDestroyOnLoad(this);
     }
 
-    public void RegisterController<T>() where T : new()
+    public static void RegisterController<T>() where T : new()
     {
         T t = new T();
         string name = typeof(T).Name;
-        if (!ControllerDic.ContainsKey(name))
-            ControllerDic.Add(name, t as BaseController);
+        if (!Inst.ControllerDic.ContainsKey(name))
+            Inst.ControllerDic.Add(name, t as BaseController);
     }
 
-    public T GetController<T>() where T : BaseController
+    public static T GetController<T>() where T : BaseController
     {
         string name = typeof(T).Name;
         BaseController bc = null;
-        if (ControllerDic.TryGetValue(name, out bc))
+        if (Inst.ControllerDic.TryGetValue(name, out bc))
             return bc as T;
         return null;
 

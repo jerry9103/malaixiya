@@ -8,9 +8,9 @@ public class Assets : MonoBehaviour
 {
 
     private static Assets Inst;
-    private Dictionary<string, Texture2D> CachTexture = new Dictionary<string, Texture2D>();//缓存的图片
+    private Dictionary<string, Sprite> CachTexture = new Dictionary<string, Sprite>();//缓存的图片
     private List<string> CachTextureList = new List<string>();
-    private const string mSendUrl = "http://h5future.com/depq/interface.php";//发送图片链接
+    private const string mSendUrl = "http://h5future.com/interface.php";//发送图片链接
 
 
     private void Awake()
@@ -25,7 +25,15 @@ public class Assets : MonoBehaviour
     /// </summary>
     /// <param name="url"></param>
     /// <param name="call"></param>
-    public static void LoadTexture(string url, CallBack<Texture2D> call)
+    public static void LoadLocalIcon(string url, Image img)
+    {
+        Inst.StartCoroutine(Inst.LoadTexture(true, url, (sp) =>
+        {
+            img.sprite = sp;
+        }));
+    }
+
+    public static void LoadLocalSp(string url, CallBack<Sprite> call)
     {
         Inst.StartCoroutine(Inst.LoadTexture(true, url, call));
     }
@@ -35,7 +43,7 @@ public class Assets : MonoBehaviour
     /// </summary>
     /// <param name="url"></param>
     /// <param name="call"></param>
-    public static void LoadIcon(string url, CallBack<Texture2D> call, bool room = true)
+    public static void LoadIcon(string url, CallBack<Sprite> call, bool room = true)
     {
         Inst.StartCoroutine(Inst.LoadTexture(false, url, call, room));
     }
@@ -50,11 +58,11 @@ public class Assets : MonoBehaviour
     {
         LoadIcon(url, (t) =>
         {
-            tex.sprite = Sprite.Create(t, new Rect(0, 0, t.texelSize.x, t.texelSize.y), new Vector2(0.5f, 0.5f));
+            tex.sprite = t;
         }, room);
     }
 
-    IEnumerator LoadTexture(bool isRes, string url, CallBack<Texture2D> calback, bool room = true)
+    IEnumerator LoadTexture(bool isRes, string url, CallBack<Sprite> calback, bool room = true)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -84,7 +92,7 @@ public class Assets : MonoBehaviour
     }
 
 
-    private IEnumerator LoadIcon(bool isRes, string url, CallBack<Texture2D> calback, bool room = true)
+    private IEnumerator LoadIcon(bool isRes, string url, CallBack<Sprite> calback, bool room = true)
     {
         Texture2D obj = null;
         if (isRes)//在resource里面加载
@@ -94,8 +102,11 @@ public class Assets : MonoBehaviour
                 SQDebug.LogError("加载错误：" + url);
             if (null != calback)
             {
-                AddTexture(url, obj);
-                calback(obj);
+
+                var sp = Sprite.Create(obj, new Rect(0, 0, obj.width, obj.height), new Vector2(0.5f, 0.5f));
+
+                AddTexture(url, sp);
+                calback(sp);
             }
         }
         else//在网络地址中加载
@@ -106,8 +117,9 @@ public class Assets : MonoBehaviour
             {
                 if (null != calback)
                 {
-                    AddTexture(url, www.texture);
-                    calback(www.texture);
+                    var sp = Sprite.Create(www.texture, new Rect(0, 0, www.texture.texelSize.x, www.texture.texelSize.y), new Vector2(0.5f, 0.5f));
+                    AddTexture(url, sp);
+                    calback(sp);
                 }
 
                 Resources.UnloadUnusedAssets();
@@ -120,7 +132,7 @@ public class Assets : MonoBehaviour
         }
     }
 
-    private void AddTexture(string url, Texture2D obj)
+    private void AddTexture(string url, Sprite obj)
     {
         if (CachTexture.ContainsKey(url))
             return;
@@ -142,7 +154,7 @@ public class Assets : MonoBehaviour
     /// </summary>
     /// <param name="url"></param>
     /// <param name="obj"></param>
-    public static void UpdateTexture(string url, Texture2D obj)
+    public static void UpdateTexture(string url, Sprite obj)
     {
         if (!string.IsNullOrEmpty(url) && obj == null && Inst.CachTexture.ContainsKey(url))
             Inst.CachTexture[url] = obj;
