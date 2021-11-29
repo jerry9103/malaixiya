@@ -21,8 +21,9 @@ public class UIUserInfo : MonoBehaviour
 
     public void Show()
     {
-        Assets.LoadLocalIcon("HeadImage/head" + UserInfo.headUrl, m_Head);
-        m_Sex.sprite = UserInfo.Sex == 1 ? m_SexSp[1] : m_SexSp[0];
+        Assets.LoadLocalIcon(UserInfo.headUrl, m_Head);
+        if (m_Sex != null)
+            m_Sex.sprite = UserInfo.Sex == 1 ? m_SexSp[1] : m_SexSp[0];
         m_Nick.text = UserInfo.NickName;
         m_Id.text = string.Format("ID:{0}", UserInfo.UserId);
         m_Gold.text = UserInfo.Gold.ToString();

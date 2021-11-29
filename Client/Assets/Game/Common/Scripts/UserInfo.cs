@@ -4,7 +4,7 @@ public static class UserInfo
     /// <summary>
     /// 头像地址
     /// </summary>
-    public static string headUrl { get { return LoginModel.Data.imgurl; } }
+    public static string headUrl { get { return "HeadImage/head" + LoginModel.Data.imgurl; } }
 
     /// <summary>
     /// 昵称

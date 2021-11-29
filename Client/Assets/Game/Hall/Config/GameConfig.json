@@ -1,4 +1,18 @@
 ﻿
 [
-  { gamecode : 1, name: "三人麻将"}
+  { "gameCode" : 1,"name": "三人麻将", "isOpen": true, "config":[{
+      "levelName": "初级场","level": 1,"baseScore": 10,"minScore": 100 },
+      { "levelName": "中级场","level": 2, "baseScore": 20, "minScore": 1000},
+      { "levelName": "高级场","level": 3,"baseScore": 50,"minScore": 10000}]
+  },
+  { "gameCode" : 2, "name": "德州", "isOpen": false,"config":[{
+      "levelName": "初级场", "level": 1, "baseScore": 10,"minScore": 100 },
+      { "levelName": "中级场", "level": 2,"baseScore": 20, "minScore": 1000},
+      { "levelName": "高级场", "level": 3,"baseScore": 50, "minScore": 10000}]
+  },
+  { "gameCode" : 3, "name": "射笼门","isOpen": false, "config":[{
+      "levelName": "初级场", "level": 1,"baseScore": 10, "minScore": 100 },
+      { "levelName": "中级场", "level": 2, "baseScore": 20,"minScore": 1000},
+      { "levelName": "高级场", "level": 3, "baseScore": 50,"minScore": 10000}]
+  }
 ]

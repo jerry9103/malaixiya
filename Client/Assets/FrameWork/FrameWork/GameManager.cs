@@ -165,6 +165,7 @@ public class GameManager : MonoBehaviour
         Global.RegisterController<LoginController>();   //登录
         Global.RegisterController<TipsController>();    //提示
         Global.RegisterController<LobbyController>();   //大厅
+        Global.RegisterController<RoomSpaceController>();  //游戏场景
 
         //Global.Inst.RegisterController<NetLoadingController>();//网络loading
         //Global.Inst.RegisterController<MainController>();//主界面

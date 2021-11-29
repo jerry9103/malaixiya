@@ -459,6 +459,7 @@ GameObject:
   - component: {fileID: 2334946201621726895}
   - component: {fileID: 8820221772011964641}
   - component: {fileID: 3525332654752272611}
+  - component: {fileID: 754758626167294531}
   m_Layer: 5
   m_Name: UILoginMain
   m_TagString: Untagged
@@ -568,6 +569,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UserAgree: {fileID: 5796287984979620708}
+--- !u!114 &754758626167294531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645591533224783010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1416049557b9a7447b37eda69d85bb00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1843656262784571582
 GameObject:
   m_ObjectHideFlags: 0
