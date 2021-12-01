@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,8 +15,26 @@ public class RoomSpaceController : BaseController
         return mView;
     }
 
-    public void Show(GameConfig config) {
+    public void Show(GameConfig config)
+    {
         OpenWindow();
         mView.Show(config);
+    }
+
+
+    public void SendJoinRoom(string roomId)
+    {
+        var data = new SendJoinRoomData();
+        data.roomid = int.Parse(roomId);
+        data.uid = int.Parse(UserInfo.UserId);
+        data.unionid = UserInfo.OpenId;
+        data.group = -1;
+
+        var url = GameManager.Instance.m_ServerUrl.GetPostUrl("loginmsg", "join", data);
+
+        HttpProcess.SendPost(url, (code, msg) =>
+        {
+
+        });
     }
 }

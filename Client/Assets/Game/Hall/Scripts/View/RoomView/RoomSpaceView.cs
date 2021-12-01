@@ -16,9 +16,10 @@ public class RoomSpaceView : BaseView
 
         for (int i = 0; i < config.config.Count; i++)
         {
-            m_SessionList[i].Show(config.config[i], (session) =>
+            m_SessionList[i].Show(config.config[i], (session, data) =>
             {
-
+                var wid = GetWidget<RoomListWidget>("UIRoom/UIRoomList", transform);
+                wid.Show(data);
             });
         }
     }

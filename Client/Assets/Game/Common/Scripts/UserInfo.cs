@@ -1,6 +1,8 @@
 ﻿
 public static class UserInfo
 {
+    public static int Ver { get; set; }
+
     /// <summary>
     /// 头像地址
     /// </summary>
@@ -23,4 +25,8 @@ public static class UserInfo
     /// 金币
     /// </summary>
     public static float Gold { get { return LoginModel.Data.gold; } }
+    /// <summary>
+    /// 用户openid
+    /// </summary>
+    public static string OpenId { get { return LoginModel.Data.openid; } }
 }

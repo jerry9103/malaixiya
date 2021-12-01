@@ -12,13 +12,13 @@ public class RoomSession : MonoBehaviour
     [SerializeField]
     private Text m_MinScore;
 
-    public void Show(GameConfigData data, System.Action<RoomSession> click) {
+    public void Show(GameConfigData data, System.Action<RoomSession, GameConfigData> click) {
         m_SessionName.text = data.levelName;
         m_BaseScore.text = "底分:" + data.baseScore.ToString();
         m_MinScore.text = "入场资格:" + data.minScore.ToString();
 
         GetComponent<Button>().onClick.AddListener(()=> {
-            click?.Invoke(this);
+            click?.Invoke(this, data);
         });
     }
 }

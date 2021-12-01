@@ -24,7 +24,10 @@ public class LobbyView : BaseView
             if (config.gameCode.Equals(id))
             {
                 if (config.isOpen)
+                {
                     Global.GetController<RoomSpaceController>().Show(config);
+                    Close();
+                }
                 else
                     Global.GetController<TipsController>().Show("未开放");
             }

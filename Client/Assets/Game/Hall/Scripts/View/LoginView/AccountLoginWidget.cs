@@ -27,7 +27,7 @@ public class AccountLoginWidget : BaseViewWidget
         LoginSendData data = new LoginSendData();
         data.account = "sot_abc2"; // m_Account.text;
         data.password = "123123"; // m_PassWord.text;
-        data.ver = 1024;
+        data.ver = UserInfo.Ver;
         data.assetkey = "ea6b2efbdd4255a9f1b3bbc6399b58f4";
         data.type = 0;
 

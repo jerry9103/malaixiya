@@ -122,6 +122,8 @@ public class GameManager : MonoBehaviour
             //加载配置信息
             LoadConfig();
 
+            GetVer();
+
             Global.GetController<LoadingController>().Show(OnLoadFinished);
         };
 
@@ -255,6 +257,20 @@ public class GameManager : MonoBehaviour
         //NetObject.name = "SixqinSDKManager";
         //NetObject.AddComponent<SixqinSDKManager>();
         //GameObject.DontDestroyOnLoad(NetObject);
+    }
+
+
+    private void GetVer() {
+
+        var data = new SendData();
+
+        var url = m_ServerUrl.GetPostUrl("versionmsg", "", data);
+
+        HttpProcess.SendPost(url, (code, msg)=> {
+            if (code == 0) {
+                UserInfo.Ver = int.Parse(msg);
+            }
+        });
     }
 
 
