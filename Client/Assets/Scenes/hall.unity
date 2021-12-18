@@ -351,8 +351,8 @@ MonoBehaviour:
   m_IsShowLog: 1
   m_ServerUrl: http://39.102.52.19:8031
   m_UseUrl: 0
-  m_Ip: 47.96.251.52
-  m_Port: 12345
+  m_Ip: 120.77.57.217
+  m_Port: 7789
   iosIsOpenID: 0
   IsTestVersion: 0
   CurIsOpenId: 0

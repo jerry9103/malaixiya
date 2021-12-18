@@ -36,14 +36,10 @@ public class GameManager : MonoBehaviour
     public int m_Port = 12345;
 
 
-
-
-    public bool mIsFirstLogin { get; private set; }   //是否登陆
-
-
-
-
-
+    /// <summary>
+    /// 连接ID
+    /// </summary>
+    private int mSessionId;
 
 
 
@@ -83,7 +79,6 @@ public class GameManager : MonoBehaviour
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         //
         Application.targetFrameRate = 30;
-        mIsFirstLogin = false;
     }
 
     // Use this for initialization
@@ -103,26 +98,17 @@ public class GameManager : MonoBehaviour
 
         CallBack call = () =>
         {
-            //初始化网络
-            NetProcess.InitNetWork(GameManager.Instance.m_Ip, GameManager.Instance.m_Port);
-
             //初始化创建管理器
             InitSceneMgr();
 
             //初始化音效管理器
             SoundProcess.Create();
-
-
-            //初始化SDK
-            InitSixSdkManager();
 #if GPS
             //初始化GPS
             InitGPS();
 #endif
             //加载配置信息
             LoadConfig();
-
-            GetVer();
 
             Global.GetController<LoadingController>().Show(OnLoadFinished);
         };
@@ -190,6 +176,9 @@ public class GameManager : MonoBehaviour
         NetObject.name = "NetProcess";
         NetObject.AddComponent<NetProcess>();
         GameObject.DontDestroyOnLoad(NetObject);
+
+        //初始化网络
+        NetProcess.InitNetWork(GameManager.Instance.m_Ip, GameManager.Instance.m_Port);
     }
 
     /// <summary>
@@ -231,8 +220,19 @@ public class GameManager : MonoBehaviour
     //一开始游戏时候，加载界面完成的回调函数
     public void OnLoadFinished()
     {
-        Global.GetController<LoginController>().Show();
-        Global.GetController<LoadingController>().CloseWindow();
+        NetProcess.Connect(m_Ip, m_Port, (b, sessionId) =>
+        {
+            if (b)
+            {
+                mSessionId = sessionId;
+                Global.GetController<LoginController>().Show();
+                Global.GetController<LoadingController>().CloseWindow();
+            }
+            else {
+                Global.GetController<TipsController>().Show("网络错误", "连接失败", null);
+            }
+        });
+        
     }
 
 
@@ -245,32 +245,6 @@ public class GameManager : MonoBehaviour
         NetObject.name = "SQSceneLoader";
         NetObject.AddComponent<SQSceneLoader>();
         GameObject.DontDestroyOnLoad(NetObject);
-    }
-
-
-    /// <summary>
-    /// 初始化SDK
-    /// </summary>
-    private void InitSixSdkManager()
-    {
-        //GameObject NetObject = new GameObject();
-        //NetObject.name = "SixqinSDKManager";
-        //NetObject.AddComponent<SixqinSDKManager>();
-        //GameObject.DontDestroyOnLoad(NetObject);
-    }
-
-
-    private void GetVer() {
-
-        var data = new SendData();
-
-        var url = m_ServerUrl.GetPostUrl("versionmsg", "", data);
-
-        HttpProcess.SendPost(url, (code, msg)=> {
-            if (code == 0) {
-                UserInfo.Ver = int.Parse(msg);
-            }
-        });
     }
 
 

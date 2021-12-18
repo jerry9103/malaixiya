@@ -13,8 +13,6 @@ public class Global : MonoBehaviour
     public Transform m_UIRoot;
 
     public static Global Inst;
-    //当前网络ID
-    private int mCurSessionId = 0;
 
     private Dictionary<string, BaseController> ControllerDic = new Dictionary<string, BaseController>();
     #region controller
@@ -42,31 +40,6 @@ public class Global : MonoBehaviour
         if (Inst.ControllerDic.TryGetValue(name, out bc))
             return bc as T;
         return null;
-
-    }
-
-
-    /// <summary>
-    /// 连接游戏服务器的
-    /// </summary>
-    /// <param name="call">Call.</param>
-	public void ConnectServer(Action<bool> call)
-    {
-        NetProcess.Connect(GameManager.Instance.m_Ip, GameManager.Instance.m_Port, (isok, sessionId) =>
-        {
-
-            if (isok)
-            {
-                mCurSessionId = sessionId;
-            }
-            //
-            if (call != null)
-            {
-                call(isok);
-            }
-
-        });
-
 
     }
 }

@@ -1,11 +1,55 @@
 ﻿
+[ProtoBuf.ProtoContract]
+public class Version {
+    /// <summary>
+    /// 平台id
+    /// </summary>
+    [ProtoBuf.ProtoMember(1)]
+    public int platform;
+    /// <summary>
+    /// 渠道id
+    /// </summary>
+    [ProtoBuf.ProtoMember(2)]
+    public int channel;
+    /// <summary>
+    /// 版本号
+    /// </summary>
+    [ProtoBuf.ProtoMember(3)]
+    public string version;
+    /// <summary>
+    /// 账号类型
+    /// </summary>
+    [ProtoBuf.ProtoMember(4)]
+    public int authtype;
+    /// <summary>
+    /// 描述从哪里注册过来的 
+    /// </summary>
+    [ProtoBuf.ProtoMember(5)]
+    public int regfrom;
+}
 
-public class LoginSendData {
-    public string account;
-    public string password;
-    public int ver;
-    public int type;
-    public string assetkey;
+
+[ProtoBuf.ProtoContract]
+public class LoginReq {
+    [ProtoBuf.ProtoMember(1)]
+    public Version version;
+    [ProtoBuf.ProtoMember(2)]
+    public string deviceinfo;
+    [ProtoBuf.ProtoMember(3)]
+    public int uid;
+    [ProtoBuf.ProtoMember(4)]
+    public int uidtype;
+    [ProtoBuf.ProtoMember(5)]
+    public string username;
+}
+
+
+[ProtoBuf.ProtoContract]
+public class LoginRes {
+    [ProtoBuf.ProtoMember(1)]
+    public int errcode;
+    [ProtoBuf.ProtoMember(2)]
+    public string errcodedes;
 }
 
 

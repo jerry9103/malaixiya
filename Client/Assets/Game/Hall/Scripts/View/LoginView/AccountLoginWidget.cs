@@ -24,32 +24,29 @@ public class AccountLoginWidget : BaseViewWidget
         //    return;
         //}
 
-        LoginSendData data = new LoginSendData();
-        data.account = "sot_abc2"; // m_Account.text;
-        data.password = "123123"; // m_PassWord.text;
-        data.ver = UserInfo.Ver;
-        data.assetkey = "ea6b2efbdd4255a9f1b3bbc6399b58f4";
-        data.type = 0;
 
-        HttpProcess.SendPost(GameManager.Instance.m_ServerUrl.GetPostUrl("loginmsg", "loginPwd", data), (code, msg) =>
-        {
-            Debug.Log("code=" + code + " Msg=" + msg);
+        LoginReq req = new LoginReq();
+        req.uid = 1000001;
+        req.uidtype = 1;
+        req.deviceinfo = "pc";
+        req.username = "jack";
+        req.version = new Version();
+        req.version.authtype = 1;
+        req.version.platform = 1;
+        req.version.version = Application.version;
+        req.version.channel = 1;
+        req.version.regfrom = 1;
 
-            HttpMessageData backData = JsonConvert.DeserializeObject<HttpMessageData>(msg);
-            if (backData != null)
-            {
-                var loginData = JsonConvert.DeserializeObject<LoginBackData>(backData.data);
-                SQDebug.Log(loginData);
+        NetProcess.SendRequest<LoginReq>(req, "LoginReq", "LoginRes", (data)=> {
+            LoginRes res = data.Read<LoginRes>();
 
-                LoginModel.Inst.SetLoginData(loginData);
-
-                Global.GetController<LobbyController>().Show();
-                Global.GetController<LoginController>().CloseWindow();
-            }
+            SQDebug.Log("登录数据:" + JsonConvert.SerializeObject(res));
         });
     }
 
-    public void OnCloseBtnClick() { }
+    public void OnCloseBtnClick() {
+        Close();
+    }
 
     public void OnForgetPassBtnClick() { }
 

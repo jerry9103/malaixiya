@@ -19,41 +19,65 @@ public class MessageData
     private delegate object ReadDelegate(Type t, byte[] data, int index, int readCount, bool needShowLog);
     private delegate byte[] WriteDelegate(object o);
 
+    public MessageData() { }
+
     public MessageData(byte[] data)
     {
         msgData = data;
     }
 
-    public MessageData(object o, int cmdNum)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="o"></param>
+    /// <param name="cmdNum"></param>
+    public void Write<T>(object o, string msgNmae)
     {
-        if (o == null)
-        {
-            o = new NullClass();
-        }
+        SQDebug.Log("发送消息的Id：" + msgNmae + "   消息内容:" + JsonConvert.SerializeObject(o));
 
-    }
-
-    public void Write<T>(object o, int cmdNum)
-    {
-        if (cmdNum != 2204)
-        {
-            SQDebug.Log("发送消息的Id：" + cmdNum + "   消息内容:" + JsonConvert.SerializeObject(o));
-        }
-
+        ClientMsgHead msgHead = new ClientMsgHead();
+        msgHead.msgname = msgNmae;
+        msgHead.msgtype = 3;
 
         byte[] data = SerializeData<T>((T)o);
-        int msgAllLen = (int)(data.Length + 6);
+        byte[] headData = SerializeData(msgHead);
+        short headSize = (short)headData.Length;
+        int msgSize = 2 + headData.Length + data.Length;
+
+        int msgAllLen = (int)(msgSize + 4);
         msgData = new byte[msgAllLen];
-        int WriteLen = (int)(data.Length + 4);
         //这里采用的是大端的存储方式 长度是数据的长度 不包括字节本身
-        byte[] len = new byte[2];
-        len[0] = (byte)(WriteLen >> 8);
-        len[1] = (byte)(WriteLen);
+        //包头存储包体大小
+        byte[] len = new byte[4];
+        len[0] = (byte)(msgSize >> 24);
+        len[1] = (byte)(msgSize >> 16);
+        len[2] = (byte)(msgSize >> 8);
+        len[3] = (byte)(msgSize);
+        Array.Copy(len, 0, msgData, 0, 4);
+        //头部消息大小
+        len = new byte[2];
+        len[0] = (byte)(headSize >> 8);
+        len[1] = (byte)headSize;
+        Array.Copy(len, 0, msgData, 4, 2);
         //end
-        byte[] cmd = Encoding.ASCII.GetBytes(cmdNum.ToString());
-        Array.Copy(len, 0, msgData, 0, 2);
-        Array.Copy(cmd, 0, msgData, 2, 4);
-        Array.Copy(data, 0, msgData, 6, data.Length);
+        //头部消息
+        Array.Copy(headData, 0, msgData, 6, headSize);
+        //消息体
+        Array.Copy(data, 0, msgData, headSize+6, data.Length);
+    }
+
+    /// <summary>
+    /// 解析数据
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="showLog"></param>
+    /// <returns></returns>
+    public T Read<T>(bool showLog = false)
+    {
+        T o = DeserializeData<T>(msgData);
+        SQDebug.Log("接收到的消息：" + JsonConvert.SerializeObject(o));
+        return o;
     }
 
     #region protobuf 序列化和反序列化
@@ -63,8 +87,8 @@ public class MessageData
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                //ProtoBuf.Serializer.Serialize<T>(ms, t);
-                byte[] b = UTF8Encoding.Default.GetBytes(JsonConvert.SerializeObject(t));
+                ProtoBuf.Serializer.Serialize<T>(ms, t);
+                byte[] b = new byte[ms.Length];
                 ms.Position = 0;
                 ms.Read(b, 0, b.Length);
                 return b;
@@ -82,20 +106,17 @@ public class MessageData
     {
         try
         {
-            //using (MemoryStream ms = new MemoryStream())
-            //{
-            //    ms.Write(data, 0, data.Length);
-            //    //将流的位置归0
-            //    ms.Position = 0;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(data, 0, data.Length);
+                //将流的位置归0
+                ms.Position = 0;
 
-            //    //使用工具反序列化对象
-            //    //T result = ProtoBuf.Serializer.Deserialize<T>(ms);
+                //使用工具反序列化对象
+                T result = ProtoBuf.Serializer.Deserialize<T>(ms);
 
-            //    return result;
-            //}
-
-            T result = JsonConvert.DeserializeObject<T>(data.ToString());
-            return result;
+                return result;
+            }
         }
         catch (Exception e)
         {
@@ -126,7 +147,7 @@ public class MessageData
 
 
 
-    public void WriteLua(byte[] data, int cmdNum)
+    public void WriteLua(byte[] data, string cmdNum)
     {
         short msgAllLen = (short)(data.Length + 6);
         msgData = new byte[msgAllLen];
@@ -142,18 +163,7 @@ public class MessageData
         Array.Copy(data, 0, msgData, 6, data.Length);
     }
 
-    /// <summary>
-    /// 解析数据
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="showLog"></param>
-    /// <returns></returns>
-    public T Read<T>(bool showLog = false)
-    {
-        T o = DeserializeData<T>(msgData);
-        SQDebug.Log("接收到的消息：" + JsonConvert.SerializeObject(o));
-        return o;
-    }
+
 
 
 

@@ -23,14 +23,14 @@ public class NetProcess : MonoBehaviour
     public delegate void ConnectCallBack(bool connectResult, int sessionID);
     public delegate void ConnectStateCallBack(NETSTATE state, int sessionId);
 
-    public static List<int> LockResponseId = new List<int>();
+    public static List<string> LockResponseId = new List<string>();
     //游戏内部协议 
-    public static List<int> mGameTypeList = new List<int>();
+    public static List<string> mGameTypeList = new List<string>();
     //大厅协议
-    public static List<int> mHallTypeList = new List<int>();
+    public static List<string> mHallTypeList = new List<string>();
 
     private static ConnectionManager mConnectionManager = null;
-    private static Dictionary<int, MessegeCallBack> ResonponseCallDic = new Dictionary<int, MessegeCallBack>();
+    private readonly static Dictionary<string, MessegeCallBack> ResonponseCallDic = new Dictionary<string, MessegeCallBack>();
     private static ConnectCallBack connCallBack = null;
     private static Connection GameCenter = null;
     public static ConnectStateCallBack NetConnectStateCall;
@@ -57,17 +57,6 @@ public class NetProcess : MonoBehaviour
     {
         mIpAdress = Ip;
         mPort = port;
-    }
-
-    //不用这个
-    private static void Connect(bool isGameCenter, ConnectCallBack callBack)
-    {
-        Connection c = mConnectionManager.CreateConnection(mIpAdress, mPort);
-        connCallBack = callBack;
-        if (isGameCenter)
-        {
-            GameCenter = c;
-        }
     }
 
     public static void Connect(string Ip, int port, ConnectCallBack callBack)
@@ -110,22 +99,22 @@ public class NetProcess : MonoBehaviour
     /// <param name="msgType">Message type.</param>
     /// <param name="msgCallBack">Message call back.</param>
     /// <param name="gameType">Game type.  不为0的则为游戏内协议 </param>
-    public static void RegisterResponseCallBack(int msgType, MessegeCallBack msgCallBack, int gameType = 0)
+    public static void RegisterResponseCallBack(string msgName, MessegeCallBack msgCallBack, int gameType = 0)
     {
-        ResonponseCallDic[msgType] = msgCallBack;
+        ResonponseCallDic[msgName] = msgCallBack;
 
         if (gameType == 0)
         {
-            mHallTypeList.Add(msgType);
+            mHallTypeList.Add(msgName);
         }
         else
         {
-            mGameTypeList.Add(msgType);
+            mGameTypeList.Add(msgName);
         }
 
     }
 
-    public static void UnRegisterResponseCallBack(int msgType)
+    public static void UnRegisterResponseCallBack(string msgType)
     {
         if (ResonponseCallDic.ContainsKey(msgType))
         {
@@ -166,7 +155,7 @@ public class NetProcess : MonoBehaviour
     /// <param name="cmdId"></param>
     /// <param name="call"></param>
 
-    public static void SendMsgByLua(byte[] data, int cmdId, SendRequestCall call, bool isShowLock = true)
+    public static void SendMsgByLua(byte[] data, string cmdId, SendRequestCall call, bool isShowLock = true)
     {
         SendRequestLuaMsg(data, cmdId, (msg) =>
         {
@@ -185,7 +174,7 @@ public class NetProcess : MonoBehaviour
     /// <param name="msgType"></param>
     /// <param name="call"></param>
 
-    public static void RegisterMsgByLua(int msgType, SendRequestCall call)
+    public static void RegisterMsgByLua(string msgType, SendRequestCall call)
     {
         RegisterResponseCallBack(msgType, (msg) =>
         {
@@ -200,7 +189,7 @@ public class NetProcess : MonoBehaviour
 
 
 
-    public static void SendRequest<T>(object o, int msgType, MessegeCallBack msgCallBack = null, bool showlock = true)
+    public static void SendRequest<T>(object o, string sendName, string recivName, MessegeCallBack msgCallBack = null, bool showlock = true)
     {
         if (showlock)
         {
@@ -208,12 +197,12 @@ public class NetProcess : MonoBehaviour
         }
         Action act = () =>
         {
-            MessageData msg = new MessageData(o, msgType);
-            msg.Write<T>(o, msgType);
-            ResonponseCallDic[msgType] = msgCallBack;
+            MessageData msg = new MessageData();
+            msg.Write<T>(o, sendName);
+            ResonponseCallDic[recivName] = msgCallBack;
             if (msgCallBack != null)
             {
-                SetLockScreen(msgType, showlock);
+                SetLockScreen(recivName, showlock);
             }
             ConnectionManager.Instance.CurrentConnection.SendMessage(msg.msgData);
         };
@@ -241,11 +230,11 @@ public class NetProcess : MonoBehaviour
     /// <param name="msgType"></param>
     /// <param name="msgCallBack"></param>
     /// <param name="showlock"></param>
-	public static void SendRequestLuaMsg(byte[] o, int msgType, MessegeCallBack msgCallBack = null, bool showlock = true)
+	public static void SendRequestLuaMsg(byte[] o, string msgType, MessegeCallBack msgCallBack = null, bool showlock = true)
     {
         Action act = () =>
         {
-            MessageData msg = new MessageData(o, msgType);
+            MessageData msg = new MessageData();
             msg.WriteLua(o, msgType);
             ResonponseCallDic[msgType] = msgCallBack;
             if (msgCallBack != null)
@@ -272,7 +261,7 @@ public class NetProcess : MonoBehaviour
     }
 
 
-    public static void SetLockScreen(int unLockResponseID, bool isShow)
+    public static void SetLockScreen(string unLockResponseID, bool isShow)
     {
         if (!LockResponseId.Contains(unLockResponseID))
         {
@@ -320,7 +309,7 @@ public class NetProcess : MonoBehaviour
         connCallBack(true, connection.SessionID);
     }
 
-    bool OnExecReceive(Connection connection, int key, byte[] msgData)
+    bool OnExecReceive(Connection connection, string key, byte[] msgData)
     {
         if (LockResponseId.Contains(key))
         {

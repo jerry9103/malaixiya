@@ -41,7 +41,7 @@ namespace Engine
         public SOCKET_ERRCODE errCode;
         public Connection socket;
         public int sessionID;
-        public int msgType;
+        public string msgType;
         public byte[] msgData = null;
     }
 
@@ -204,7 +204,7 @@ namespace Engine
         public bool NoDelay = true;
 
         public delegate void OnConnectDelegate(Connection so, SOCKET_ERRCODE errCode);
-        public delegate bool OnReceiveDelegate(Connection so, int msgType, byte[] byteMsg);
+        public delegate bool OnReceiveDelegate(Connection so, string msgType, byte[] byteMsg);
         public delegate void OnCloseDelegate(Connection so, SOCKET_ERRCODE errCode);
 
         private OnReceiveDelegate OnReceive;
@@ -404,7 +404,7 @@ namespace Engine
                     }
 
 
-                    while (OnReceiveData(ref so) == true) ;
+                    while (OnReceiveData(ref so) == true);
                     //接收完数据，可能SOCKET关闭
                     if (so.Connected == true)
                     {
@@ -431,20 +431,27 @@ namespace Engine
             {
                 if (so.msgBuffer.Length < Message.MessageHeadSize) return false;
                 //Get  msg  size
-                byte[] bytesBodySize = new byte[2];
+                byte[] bytesBodySize = new byte[4];
                 so.msgBuffer.ReadData(ref bytesBodySize, 0);
-                byte b = bytesBodySize[0];
-                bytesBodySize[0] = bytesBodySize[1];
+                byte b = bytesBodySize[3];
+                bytesBodySize[3] = bytesBodySize[0];
+                bytesBodySize[0] = b;
+                b = bytesBodySize[2];
+                bytesBodySize[2] = bytesBodySize[1];
                 bytesBodySize[1] = b;
-                int bodySize = BitConverter.ToInt16(bytesBodySize, 0) - 4;
+                int bodySize = BitConverter.ToInt16(bytesBodySize, 0) - 2;
                 //完整数据包还没有到达
-                if (so.msgBuffer.Length < bodySize + Message.MessageHeadSize)
+                if (so.msgBuffer.Length < bodySize + 6)
                 {
                     return false;
                 }
                 so.msgBuffer.SubmitReadData(ref bytesBodySize);
-                byte[] bytesHeadConfirm = new byte[4];
-                so.msgBuffer.FectchData(ref bytesHeadConfirm);
+                byte[] bytesHeadSize = new byte[2];
+                so.msgBuffer.FectchData(ref bytesHeadSize);
+                b = bytesHeadSize[0];
+                bytesHeadSize[0] = bytesHeadSize[1];
+                bytesHeadSize[1] = b;
+                int headSize = BitConverter.ToInt16(bytesHeadSize, 0);
 
                 QSocketEvent socketEvent = new QSocketEvent();
                 socketEvent.eventType = QSOCKET_EVENTTYPE.EVENT_RECEIVE;
@@ -452,18 +459,29 @@ namespace Engine
                 socketEvent.sessionID = so.SessionID;
                 socketEvent.errCode = SOCKET_ERRCODE.SUCCESS;
                 //get msg type
-                byte[] msgCmd = new byte[4];
-                so.msgBuffer.FectchData(ref msgCmd);
-                string msgCmdStr = Encoding.ASCII.GetString(msgCmd);
-                if (msgCmdStr != mHeartCmd)//不是心跳才打印
-                    SQDebug.Log("msgCmd=" + msgCmdStr);
-                int.TryParse(msgCmdStr, out socketEvent.msgType);
-                //get body
-                socketEvent.msgData = new byte[bodySize - 4];
-                so.msgBuffer.FectchData(ref socketEvent.msgData);
-                AddSocketEvent(socketEvent);
-                return true;
+                byte[] headMsg = new byte[headSize];
+                so.msgBuffer.FectchData(ref headMsg);
 
+                MessageData msg = new MessageData(headMsg);
+                var headData = msg.Read<ClientMsgHead>();
+                if (headData != null)
+                {
+                    socketEvent.msgType = headData.msgname;
+                    //get body
+                    socketEvent.msgData = new byte[bodySize - headSize];
+                    so.msgBuffer.FectchData(ref socketEvent.msgData);
+                    AddSocketEvent(socketEvent);
+
+                    return true;
+                }
+                else return false;
+
+                //string msgCmdStr = Encoding.ASCII.GetString(msgCmd);
+                //if (msgCmdStr != mHeartCmd)//不是心跳才打印
+                //    SQDebug.Log("msgCmd=" + msgCmdStr);
+
+                //socketEvent.msgType = msgCmdStr;
+                //get body
             }
             catch (Exception ex)
             {
