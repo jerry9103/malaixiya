@@ -10,9 +10,12 @@ public class LoginModel : BaseModel
     }
 
 
-    public static LoginBackData Data { get; private set; }
+    public static PlayerBaseInfo Data { get; private set; }
 
-    public void SetLoginData(LoginBackData data) {
+    public static string UserId { get; private set; }
+
+    public void SetLoginData(PlayerBaseInfo data, string userId) {
+        UserId = userId;
         Data = data;
     }
 }

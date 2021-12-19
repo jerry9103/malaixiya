@@ -463,7 +463,7 @@ namespace Engine
                 so.msgBuffer.FectchData(ref headMsg);
 
                 MessageData msg = new MessageData(headMsg);
-                var headData = msg.Read<ClientMsgHead>();
+                var headData = msg.ReadHead();
                 if (headData != null)
                 {
                     socketEvent.msgType = headData.msgname;

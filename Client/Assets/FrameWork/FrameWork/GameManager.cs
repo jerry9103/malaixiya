@@ -39,8 +39,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 连接ID
     /// </summary>
-    private int mSessionId;
-
+    public int mSessionId { get; set; }
 
 
 
@@ -218,21 +217,23 @@ public class GameManager : MonoBehaviour
 
 
     //一开始游戏时候，加载界面完成的回调函数
-    public void OnLoadFinished()
+    private void OnLoadFinished()
     {
         NetProcess.Connect(m_Ip, m_Port, (b, sessionId) =>
         {
             if (b)
             {
                 mSessionId = sessionId;
+
                 Global.GetController<LoginController>().Show();
                 Global.GetController<LoadingController>().CloseWindow();
             }
-            else {
+            else
+            {
                 Global.GetController<TipsController>().Show("网络错误", "连接失败", null);
             }
         });
-        
+
     }
 
 
@@ -387,6 +388,29 @@ public class GameManager : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 链接服务器
+    /// </summary>
+    /// <param name="ip"></param>
+    /// <param name="port"></param>
+    /// <param name="finish"></param>
+    public void ConnectServer(string ip, int port, Action finish) {
+        //释放当前链接
+        NetProcess.ReleaseConnect(mSessionId);
+        NetProcess.Connect(ip, port, (b, sessionId)=> {
+            if (b) {
+                mSessionId = sessionId;
+                finish?.Invoke();
+            }
+        });
+    }
+
+
+
+
+
+
+
 
     void OnApplicationPause(bool b)
     {
@@ -412,6 +436,11 @@ public class GameManager : MonoBehaviour
 
     }
 
+    private void OnApplicationQuit()
+    {
+        NetProcess.ReleaseConnect(mSessionId);
+    }
+
 #if UNITY_EDITOR
     void Update()
     {
@@ -425,6 +454,8 @@ public class GameManager : MonoBehaviour
             OnApplicationPause(false);
     }
 #endif
+
+
     #region 心跳处理
 
     public int mNoHeartTime = 0;//没有接收到心跳的次数

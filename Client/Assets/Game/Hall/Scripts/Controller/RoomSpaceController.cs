@@ -26,8 +26,7 @@ public class RoomSpaceController : BaseController
     {
         var data = new SendJoinRoomData();
         data.roomid = int.Parse(roomId);
-        data.uid = int.Parse(UserInfo.UserId);
-        data.unionid = UserInfo.OpenId;
+        data.uid = int.Parse(UserInfoData.UserId);
         data.group = -1;
 
         var url = GameManager.Instance.m_ServerUrl.GetPostUrl("loginmsg", "join", data);

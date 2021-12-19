@@ -1,17 +1,17 @@
 ﻿
-public static class UserInfo
+public static class UserInfoData
 {
     public static int Ver { get; set; }
 
     /// <summary>
     /// 头像地址
     /// </summary>
-    public static string headUrl { get { return "HeadImage/head" + LoginModel.Data.imgurl; } }
+    public static string headUrl { get { return "HeadImage/head" + LoginModel.Data.logo; } }
 
     /// <summary>
     /// 昵称
     /// </summary>
-    public static string NickName { get { return LoginModel.Data.name; } }
+    public static string NickName { get { return LoginModel.Data.roleName; } }
     /// <summary>
     /// 性别
     /// </summary>
@@ -19,14 +19,10 @@ public static class UserInfo
     /// <summary>
     /// 用户ID
     /// </summary>
-    public static string UserId { get { return LoginModel.Data.uid; } }
+    public static string UserId { get { return LoginModel.UserId; } }
 
     /// <summary>
     /// 金币
     /// </summary>
-    public static float Gold { get { return LoginModel.Data.gold; } }
-    /// <summary>
-    /// 用户openid
-    /// </summary>
-    public static string OpenId { get { return LoginModel.Data.openid; } }
+    public static float Gold { get { return LoginModel.Data.coin; } }
 }

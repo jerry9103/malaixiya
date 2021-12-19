@@ -19,6 +19,8 @@ public class MessageData
     private delegate object ReadDelegate(Type t, byte[] data, int index, int readCount, bool needShowLog);
     private delegate byte[] WriteDelegate(object o);
 
+    private string msgName { get; set; }
+
     public MessageData() { }
 
     public MessageData(byte[] data)
@@ -64,7 +66,7 @@ public class MessageData
         //头部消息
         Array.Copy(headData, 0, msgData, 6, headSize);
         //消息体
-        Array.Copy(data, 0, msgData, headSize+6, data.Length);
+        Array.Copy(data, 0, msgData, headSize + 6, data.Length);
     }
 
     /// <summary>
@@ -75,9 +77,16 @@ public class MessageData
     /// <returns></returns>
     public T Read<T>(bool showLog = false)
     {
+        msgName = typeof(T).Name;
         T o = DeserializeData<T>(msgData);
-        SQDebug.Log("接收到的消息：" + JsonConvert.SerializeObject(o));
+        SQDebug.Log(string.Format("接收到的消息：{0} {1}", msgName, JsonConvert.SerializeObject(o)));
         return o;
+    }
+
+    public ClientMsgHead ReadHead()
+    {
+        ClientMsgHead head = DeserializeData<ClientMsgHead>(msgData);
+        return head;
     }
 
     #region protobuf 序列化和反序列化
