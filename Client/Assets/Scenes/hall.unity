@@ -359,7 +359,6 @@ MonoBehaviour:
   mVersionTxtUrl: 
   mVersion: 
   mGpsTools: {fileID: 0}
-  mNoHeartTime: 0
 --- !u!4 &781779193
 Transform:
   m_ObjectHideFlags: 0

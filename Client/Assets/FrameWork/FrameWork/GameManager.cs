@@ -41,6 +41,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public int mSessionId { get; set; }
 
+    private int mAutoReConnectNum = 0;//自动重连次数
+
+
+
 
 
 
@@ -49,7 +53,7 @@ public class GameManager : MonoBehaviour
 
     public bool IsTestVersion = false;
 
-    private int mAutoReConnectNum = 0;//自动重连次数
+
     private float mLastReconnetTime;//上一次重连的时间
     //当前设定的值为多少？
     [SerializeField]
@@ -394,11 +398,14 @@ public class GameManager : MonoBehaviour
     /// <param name="ip"></param>
     /// <param name="port"></param>
     /// <param name="finish"></param>
-    public void ConnectServer(string ip, int port, Action finish) {
+    public void ConnectServer(string ip, int port, Action finish)
+    {
         //释放当前链接
         NetProcess.ReleaseConnect(mSessionId);
-        NetProcess.Connect(ip, port, (b, sessionId)=> {
-            if (b) {
+        NetProcess.Connect(ip, port, (b, sessionId) =>
+        {
+            if (b)
+            {
                 mSessionId = sessionId;
                 finish?.Invoke();
             }
@@ -458,7 +465,12 @@ public class GameManager : MonoBehaviour
 
     #region 心跳处理
 
-    public int mNoHeartTime = 0;//没有接收到心跳的次数
+    /// <summary>
+    /// 没有接受到心跳的次数
+    /// </summary>
+    public int mNoHeartTimes { get; private set; }
+
+    public bool mIsStartHeart { get; private set; }
 
     /// <summary>
     /// 开始心跳连接
@@ -467,10 +479,11 @@ public class GameManager : MonoBehaviour
     public void StartHeartBreath()
     {
         SQDebug.Log("开始心跳");
+        mIsStartHeart = true;
         if (!IsInvoking("SendHeartBreath"))
         {
             SQDebug.Log("开启心跳连接");
-            InvokeRepeating("SendHeartBreath", 0.01f, 5.0f);//5s发送一次心跳连接
+            InvokeRepeating("SendHeartBreath", 0.01f, 5.0f);  //5s发送一次心跳连接
         }
     }
 
@@ -480,31 +493,35 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void CancelHeartBreath()
     {
-        CancelInvoke("SendHeartBreath");
         SQDebug.Log("取消心跳连接");
-        mNoHeartTime = 0;
+        CancelInvoke("SendHeartBreath");
+        mNoHeartTimes = 0;
+        mIsStartHeart = false;
     }
 
 
     /// <summary>
     /// 发送心跳连接
     /// </summary>
-    public void SendHeartBreath()
+    private void SendHeartBreath()
     {
-        mNoHeartTime++;
-        if (mNoHeartTime >= 3)//3
-        {//超过两次没有收到心跳恢复
+        mNoHeartTimes++;
+
+        //超过三次没有心跳则重连
+        if (mNoHeartTimes >= 3)
+        {
             SQDebug.Log("通过心跳判定的断网处理");
             ShowNetTips();
             return;
         }
 
-        //NetProcess.SendRequest<int>(0, ProtoIdMap.CMD_HearBreath, (msg) =>
-        //{
-        //    mNoHeartTime = 0;
-        //    mAutoReConnectNum = 0;
-        //    //SQDebug.Log("心跳返回+++++++++++++++++++++++++++++++++++++");
-        //}, false);
+        HeartReq req = new HeartReq();
+        NetProcess.SendRequest<HeartReq>(req, MessageProtoId.HeartReq, MessageProtoId.HeartRes, (msg) =>
+        {
+            var res = msg.Read<HeartRes>();
+            mNoHeartTimes = 0;
+            mAutoReConnectNum = 0;
+        }, false);
     }
 
 
@@ -513,11 +530,16 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ShowNetTips()
     {
-        GameManager.Instance.CancelHeartBreath();
+        if (!mIsStartHeart) return;
+        //取消心跳
+        CancelHeartBreath();
+        //释放链接
         NetProcess.ReleaseAllConnect();
+
         //Global.Inst.GetController<NetLoadingController>().ShowLoading(true);
-        //SetTimeout.remove(ReConnet);
-        if (Time.realtimeSinceStartup - mLastReconnetTime > 5)//重连间隔要大于5秒
+
+        //重连间隔要大于5秒
+        if (Time.realtimeSinceStartup - mLastReconnetTime > 5)
         {
             SQDebug.Log("直接重连");
             ReConnet();
@@ -538,35 +560,35 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ReConnet()
     {
-        //mLastReconnetTime = Time.realtimeSinceStartup;//重连时间
-        //LoginModel.Inst.mSessionId = -1;
+        mLastReconnetTime = Time.realtimeSinceStartup;//重连时间
+        mSessionId = -1;
         //Global.Inst.GetController<NetLoadingController>().ShowLoading(false);
-        //CallBack call = () =>
-        //{
-        //    SQDebug.Log("重连次数" + mAutoReConnectNum);
-        //    NetProcess.Connect(GameManager.Instance.Ip, GameManager.Instance.port, (isConnect, id) =>
-        //    {
-        //        if (isConnect)
-        //        {
-        //            StartHeartBreath();
-        //            Global.Inst.GetController<LoginController>().Relogin();
-        //        }
-        //        else
-        //            ShowNetTips();
-        //    });
-        //};
-        //if (mAutoReConnectNum < 3)//如果自动重连次数少于两次就弹出提示   3
-        //{
-        //    mAutoReConnectNum++;
-        //    call();
-        //}
-        //else
-        //{
-        //    Global.Inst.GetController<CommonTipsController>().ShowTips("网络连接失败", "尝试连接|退出游戏", true, call, () =>
-        //    {
-        //        Application.Quit();
-        //    }, null, "网络异常");
-        //}
+
+        Action call = () =>
+        {
+            SQDebug.Log("重连次数" + mAutoReConnectNum);
+            NetProcess.Connect(m_Ip, m_Port, (isConnect, id) =>
+            {
+                if (isConnect)
+                {
+                    Global.GetController<LoginController>().Relogin();
+                }
+                else
+                    ShowNetTips();
+            });
+        };
+        if (mAutoReConnectNum < 3)//如果自动重连次数少于两次就弹出提示   3
+        {
+            mAutoReConnectNum++;
+            call();
+        }
+        else
+        {
+            Global.GetController<TipsController>().Show("网络连接失败", "尝试连接|退出游戏", call, () =>
+            {
+                Application.Quit();
+            }, null);
+        }
     }
     #endregion
 

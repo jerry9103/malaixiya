@@ -42,3 +42,19 @@ public class Version
     [ProtoBuf.ProtoMember(5)]
     public int regfrom;
 }
+
+/// <summary>
+/// 心跳
+/// </summary>
+[ProtoBuf.ProtoContract]
+public class HeartReq { 
+}
+
+/// <summary>
+/// 心跳返回
+/// </summary>
+[ProtoBuf.ProtoContract]
+public class HeartRes {
+    [ProtoBuf.ProtoMember(1)]
+    public int serverTime;
+}

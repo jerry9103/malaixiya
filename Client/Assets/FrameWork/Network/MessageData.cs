@@ -34,12 +34,14 @@ public class MessageData
     /// <typeparam name="T"></typeparam>
     /// <param name="o"></param>
     /// <param name="cmdNum"></param>
-    public void Write<T>(object o, string msgNmae)
+    public void Write<T>(object o, string msgName)
     {
-        SQDebug.Log("发送消息的Id：" + msgNmae + "   消息内容:" + JsonConvert.SerializeObject(o));
+        this.msgName = msgName;
+        if (!msgName.Equals(MessageProtoId.HeartRes))
+            SQDebug.Log("发送消息的Id：" + msgName + "   消息内容:" + JsonConvert.SerializeObject(o));
 
         ClientMsgHead msgHead = new ClientMsgHead();
-        msgHead.msgname = msgNmae;
+        msgHead.msgname = msgName;
         msgHead.msgtype = 3;
 
         byte[] data = SerializeData<T>((T)o);
@@ -79,7 +81,8 @@ public class MessageData
     {
         msgName = typeof(T).Name;
         T o = DeserializeData<T>(msgData);
-        SQDebug.Log(string.Format("接收到的消息：{0} {1}", msgName, JsonConvert.SerializeObject(o)));
+        if (!msgName.Equals(MessageProtoId.HeartRes))
+            SQDebug.Log(string.Format("接收到的消息：{0} {1}", msgName, JsonConvert.SerializeObject(o)));
         return o;
     }
 
